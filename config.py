@@ -18,7 +18,7 @@ DATABASE_CONNECT_OPTIONS = {"database": 'escuela_futbol',
 THREADS_PER_PAGE = 2
 # HOST = '25.78.23.166'
 # HOST = '25.78.23.166'
-HOST = '0.0.0.0'
+HOST = '25.67.18.209'
 PORT = 8889
 # Enable protection agains *Cross-site Request Forgery (CSRF)*
 CSRF_ENABLED = True
@@ -29,4 +29,8 @@ CSRF_SESSION_KEY = "asdwerwe"
 
 # Secret key for signing cookies
 SECRET_KEY = "123sdwr"
+
+
+api_key_flow = "7F77DD8F-DDDA-4496-BB12-6D9F9BL8729C"
+secret_key_flow = "726ae63459d59cf567d026f78c40c2d716c67283"
 
