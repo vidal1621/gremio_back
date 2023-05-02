@@ -19,7 +19,7 @@ THREADS_PER_PAGE = 2
 # HOST = '25.78.23.166'
 # HOST = '25.78.23.166'
 HOST = '0.0.0.0'
-PORT = 8889
+PORT = 5000
 # Enable protection agains *Cross-site Request Forgery (CSRF)*
 CSRF_ENABLED = True
 
