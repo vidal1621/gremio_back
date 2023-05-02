@@ -21,41 +21,41 @@ import os
 
 mod_pagos = Blueprint('pagos', __name__, url_prefix='/pagos')
 
-@mod_pagos.route('/create_order', methods=['POST'])
-def create_order():
-    amount: int = 1000
-    apiKey: str = self.API_KEY
-    commerceOrder: str = "12345"
-    currency: str = "CLP"
-    email: str = "Escuelagremiochile@gmail.com"
-    merchantId: str = None
-    optional: str = None
-    # payment_currency: str = "CLP"
-    payment_method: int = 9
-    subject: str = ""
-    timeout: int = None
-    urlConfirmation: str = "https://www.google.com"
-    urlReturn: str = "https://www.google.com"
-    s: str = ""
-    payment = Payment()
-    payment_data = PaymentCreate(
-        amount=amount,
-        apiKey=apiKey,
-        commerceOrder=commerceOrder,
-        currency=currency,
-        email=email,
-        merchantId=merchantId,
-        optional=optional,
-        # payment_currency=payment_currency,
-        payment_method=payment_method,
-        subject=subject,
-        timeout=timeout,
-        urlConfirmation=urlConfirmation,
-        urlReturn=urlReturn,
-        s=s
-    )
-    signature = payment.create_order(payment_data)
-    return Response(response=json.dumps(signature), status=200, mimetype='application/json')
+# @mod_pagos.route('/create_order', methods=['POST'])
+# def create_order():
+#     amount: int = 1000
+#     apiKey: str = self.API_KEY
+#     commerceOrder: str = "12345"
+#     currency: str = "CLP"
+#     email: str = "Escuelagremiochile@gmail.com"
+#     merchantId: str = None
+#     optional: str = None
+#     # payment_currency: str = "CLP"
+#     payment_method: int = 9
+#     subject: str = ""
+#     timeout: int = None
+#     urlConfirmation: str = "https://www.google.com"
+#     urlReturn: str = "https://www.google.com"
+#     s: str = ""
+#     payment = Payment()
+#     payment_data = PaymentCreate(
+#         amount=amount,
+#         apiKey=apiKey,
+#         commerceOrder=commerceOrder,
+#         currency=currency,
+#         email=email,
+#         merchantId=merchantId,
+#         optional=optional,
+#         # payment_currency=payment_currency,
+#         payment_method=payment_method,
+#         subject=subject,
+#         timeout=timeout,
+#         urlConfirmation=urlConfirmation,
+#         urlReturn=urlReturn,
+#         s=s
+#     )
+#     signature = payment.create_order(payment_data)
+#     return Response(response=json.dumps(signature), status=200, mimetype='application/json')
 
 
 class PaymentCreate(BaseModel):
