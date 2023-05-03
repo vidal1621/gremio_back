@@ -95,8 +95,8 @@ def pagos():
             'currency': 'CLP',
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
-            'urlConfirmation': 'https://escuelagremiochile.cl/confimacion_pago',
-            'urlReturn': 'https//escuelagremiochile.cl/retorno_pago',
+            'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
+            'urlReturn': 'http://186.64.122.205:5000/alumnos/retorno_pago',
         }
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
