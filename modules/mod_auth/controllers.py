@@ -85,9 +85,7 @@ def pagos():
     for d in data['alumnos']:
         dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
         pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-        cursor.execute(pagos,
-                       [d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],
-                        'Pendiente'], [d['cod_alumno']])
+        cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
         cod_pagos = cursor.fetchone()
         data_order = {
             'amount': d['monto'],
