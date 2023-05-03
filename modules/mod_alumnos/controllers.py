@@ -9,14 +9,14 @@ import psycopg2.extras
 mod_alumnos = Blueprint('alumnos', __name__, url_prefix='/alumnos')
 
 
-@mod_alumnos.route('/alumnos_api', methods=['GET','POST','PUT'])
+@mod_alumnos.route('/alumnos_api', methods=['GET', 'POST', 'PUT'])
 def alumnos_api():
     cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     data = json.loads(request.data)
     if request.method == 'GET':
-        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos
-                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s"""
-        cursor.execute(sql_pendiente, [data['cod_usuario']])
+        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision
+                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=%s """
+        cursor.execute(sql_pendiente, [data['cod_usuario'], data['mes']])
         alumnos = cursor.fetchall()
         planes_pago = "select * from planes_pagos"
         cursor.execute(planes_pago)
@@ -43,23 +43,26 @@ def alumnos_api():
                 cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
                 precio = cursor.fetchone()
                 # dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-                pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-                cursor.execute(pagos, [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(), precio['precio'],
-                                       'Pendiente', cod_alumno['cod_alumno']])
+                pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s) returning cod_pagos"
+                cursor.execute(pagos,
+                               [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
+                                precio['precio'],
+                                'Pendiente', cod_alumno['cod_alumno']])
                 cod_pagos = cursor.fetchone()
                 data_order = {
                     'amount': precio['precio'],
                     'commerceOrder': cod_pagos['cod_pagos'],
                     'currency': 'CLP',
-                    'email':  'Escuelagremiochile@gmail.com',
+                    'email': 'Escuelagremiochile@gmail.com',
                     'subject': 'Pago Mensualidad Escuela Gremio',
                     'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
                     'urlReturn': 'http://186.64.122.205:5000/alumnos/retorno_pago',
                 }
                 create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
                 if create_payment.status_code == 200:
-                    cursor.execute("update pagos set flow_token=%s, desc_pagos=%s where cod_pagos=%s",
-                                   [create_payment.json()['token'], 'Pagado', cod_pagos['cod_pagos']])
+                    url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
+                    cursor.execute("commit")
+                    return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
             cursor.execute("commit")
             return Response(response=json.dumps('ok', default=str), status=200,
                             mimetype='application/json')

@@ -76,19 +76,24 @@ def authenticate(req):
 
 @mod_auth.route('/pagos', methods=['POST'])
 def pagos():
-    cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    from gremio_back.modules.mod_pagos.controllers import Payment
-    from gremio_back.modules.mod_pagos.controllers import PaymentCreate
-    data = json.loads(request.data)
-    payment = Payment()
-    cursor.execute("begin")
-    for d in data['alumnos']:
-        dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-        pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-        cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
-        cod_pagos = cursor.fetchone()
+    try:
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        from gremio_back.modules.mod_pagos.controllers import Payment
+        from gremio_back.modules.mod_pagos.controllers import PaymentCreate
+        data = json.loads(request.data)
+        payment = Payment()
+        cursor.execute("begin")
+        monto_total = 0
+        for d in data['alumnos']:
+            dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
+            pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
+            cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
+            cod_pagos = cursor.fetchone()
+            # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
+            # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
+            monto_total += d['monto']
         data_order = {
-            'amount': d['monto'],
+            'amount': monto_total,
             'commerceOrder': cod_pagos['cod_pagos'],
             'currency': 'CLP',
             'email': 'Escuelagremiochile@gmail.com',
@@ -98,11 +103,18 @@ def pagos():
         }
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
-            sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
-            cursor.execute(sql_update, [create_payment.json()['token'], 'Pagado', cod_pagos['cod_pagos']])
-    cursor.execute("commit")
-    return Response(response=json.dumps('ok', default=str), status=200,
-                    mimetype='application/json')
+            url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
+            cursor.execute("commit")
+            return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
+                # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
+                # cursor.execute(sql_update, [create_payment.json()['token'], 'Pagado', cod_pagos['cod_pagos']])
+        return Response(response=json.dumps('ok', default=str), status=200,
+                        mimetype='application/json')
+    except Exception as e:
+        print(e)
+        cursor.execute("rollback")
+        return Response(response=json.dumps('error', default=str), status=500,
+                        mimetype='application/json')
 
 
 @mod_auth.route('/recuperar_password', methods=['POST'])
@@ -145,3 +157,29 @@ def send_mail(email, nombre, password):
     server.sendmail(fromaddr, toaddr, text)
     server.quit()
     return True
+
+
+@mod_auth.route('/crear_pagos_cron', methods=['GET'])
+def crear_pagos_cron():
+    try:
+        fecha_actual = datetime.datetime.now()
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        if fecha_actual.day == 10:
+            cursor.execute("select * from alumnos")
+            alumnos = cursor.fetchall()
+            cursor.execute("begin")
+            for a in alumnos:
+                dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
+                sql_plan_asociado = "select monto from alumnos where cod_alumno=%s"
+                cursor.execute(sql_plan_asociado, [a['cod_alumno']])
+                monto = cursor.fetchone()
+                pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
+                cursor.execute(pagos,[a['cod_usuario'], datetime.datetime.now(), dia_vencimiento, monto, 'Pendiente', a['cod_alumno']])
+            cursor.execute("commit")
+            return Response(response=json.dumps('ok', default=str), status=200,
+                            mimetype='application/json')
+    except Exception as e:
+        print(e)
+        cursor.execute("rollback")
+        return Response(response=json.dumps('error', default=str), status=500,
+                        mimetype='application/json')
