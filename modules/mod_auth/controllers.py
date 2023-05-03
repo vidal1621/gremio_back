@@ -105,3 +105,45 @@ def pagos():
     cursor.execute("commit")
     return Response(response=json.dumps('ok', default=str), status=200,
                     mimetype='application/json')
+
+
+@mod_auth.route('/recuperar_password', methods=['POST'])
+def recuperar_password():
+    try:
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        data = json.loads(request.data)
+        email = data['email']
+        cursor.execute("select * from usuarios where email=%s", [email])
+        user = cursor.fetchone()
+        if user:
+            send_mail(user['email'], user['nombre_usuario'], user['password'])
+            return Response(response=json.dumps('ok', default=str), status=200,
+                            mimetype='application/json')
+        else:
+            return Response(response=json.dumps('error', default=str), status=500,
+                            mimetype='application/json')
+    except Exception as e:
+        print(e)
+        return Response(response=json.dumps('error', default=str), status=500,
+                        mimetype='application/json')
+
+
+def send_mail(email, nombre, password):
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    fromaddr = "xvidaaalx@gmail.com"
+    toaddr = email
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] ="Recuperacion de password gremio webapp"
+    body = "Hola "+nombre+" tu password es: "+password
+    msg.attach(MIMEText(body, 'plain'))
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(fromaddr, "aymcwztzbleymltv")
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
+    server.quit()
+    return True
