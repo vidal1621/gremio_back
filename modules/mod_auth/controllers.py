@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import random
 import sys
 from functools import wraps
 from flask import Blueprint, Response, request
