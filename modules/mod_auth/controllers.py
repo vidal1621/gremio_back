@@ -85,10 +85,14 @@ def pagos():
         cursor.execute("begin")
         monto_total = 0
         for d in data['alumnos']:
-            dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-            pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-            cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
-            cod_pagos = cursor.fetchone()
+            if d['cod_pagos'] != None:
+                cod_pagos = {}
+                cod_pagos['cod_pagos'] = d['cod_pagos']
+            else:
+                dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
+                pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
+                cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
+                cod_pagos = cursor.fetchone()
             # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
             # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
             monto_total += d['monto']
@@ -99,7 +103,7 @@ def pagos():
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
             'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
-            'urlReturn': 'http://186.64.122.205:5000/alumnos/retorno_pago',
+            'urlReturn': 'http://186.64.122.205:3000/alumnos/retorno_pago',
         }
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:

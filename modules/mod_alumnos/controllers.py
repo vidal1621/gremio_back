@@ -14,7 +14,7 @@ def alumnos_api():
     cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     data = json.loads(request.data)
     if request.method == 'GET':
-        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision
+        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision,cod_pagos
                         from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=%s and extract(year from fecha_emision)=extract(year from now())"""
         cursor.execute(sql_pendiente, [data['cod_usuario'], data['mes']])
         alumnos = cursor.fetchall()
@@ -28,7 +28,6 @@ def alumnos_api():
         return Response(response=json.dumps(object, default=str), status=200,
                         mimetype='application/json')
     elif request.method == 'POST':
-        from gremio_back.modules.mod_pagos.controllers import Payment
         try:
             cursor.execute("begin")
             for d in data['alumnos']:
@@ -45,8 +44,8 @@ def alumnos_api():
                                [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
                                 precio['precio'],
                                 'Pendiente', cod_alumno['cod_alumno']])
-                cursor.execute("commit")
-                return Response(response=json.dumps('ok', default=str), status=200, mimetype='application/json')
+            cursor.execute("commit")
+            return Response(response=json.dumps('ok', default=str), status=200, mimetype='application/json')
         except Exception as e:
             cursor.execute("rollback")
             print(e)
