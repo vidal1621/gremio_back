@@ -103,7 +103,7 @@ def pagos():
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
             'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
-            'urlReturn': 'http://186.64.122.205:3000/alumnos/retorno_pago',
+            'urlReturn': 'http://186.64.122.205:3000/alumno/retorno_pago',
         }
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
