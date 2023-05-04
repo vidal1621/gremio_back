@@ -15,7 +15,7 @@ def alumnos_api():
     data = json.loads(request.data)
     if request.method == 'GET':
         sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision
-                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=%s """
+                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=%s and extract(year from fecha_emision)=extract(year from now())"""
         cursor.execute(sql_pendiente, [data['cod_usuario'], data['mes']])
         alumnos = cursor.fetchall()
         planes_pago = "select * from planes_pagos"
@@ -29,8 +29,6 @@ def alumnos_api():
                         mimetype='application/json')
     elif request.method == 'POST':
         from gremio_back.modules.mod_pagos.controllers import Payment
-        from gremio_back.modules.mod_pagos.controllers import PaymentCreate
-        payment = Payment()
         try:
             cursor.execute("begin")
             for d in data['alumnos']:
@@ -42,30 +40,13 @@ def alumnos_api():
                 sql_planes_pago = "select precio from planes_pagos where cod_planes_pagos=%s"
                 cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
                 precio = cursor.fetchone()
-                # dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-                pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s) returning cod_pagos"
+                pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
                 cursor.execute(pagos,
                                [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
                                 precio['precio'],
                                 'Pendiente', cod_alumno['cod_alumno']])
-                cod_pagos = cursor.fetchone()
-                data_order = {
-                    'amount': precio['precio'],
-                    'commerceOrder': cod_pagos['cod_pagos'],
-                    'currency': 'CLP',
-                    'email': 'Escuelagremiochile@gmail.com',
-                    'subject': 'Pago Mensualidad Escuela Gremio',
-                    'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
-                    'urlReturn': 'http://186.64.122.205:5000/alumnos/retorno_pago',
-                }
-                create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
-                if create_payment.status_code == 200:
-                    url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
-                    cursor.execute("commit")
-                    return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
-            cursor.execute("commit")
-            return Response(response=json.dumps('ok', default=str), status=200,
-                            mimetype='application/json')
+                cursor.execute("commit")
+                return Response(response=json.dumps('ok', default=str), status=200, mimetype='application/json')
         except Exception as e:
             cursor.execute("rollback")
             print(e)
@@ -103,6 +84,19 @@ def pagos_view_api():
 
 @mod_alumnos.route('/confimacion_pago', methods=['POST'])
 def confimacion_pago():
+    try:
+        req_body = request.body()
+        token = str(req_body).split("=")[1].replace("'", "")
+        print(token)
+        return True
+
+    except Exception as e:
+        print(e)
+        return Response(response=json.dumps(e), status=500, mimetype='application/json')
+
+
+@mod_alumnos.route('/retorno_pago', methods=['POST'])
+def retorno_pago():
     try:
         req_body = request.body()
         token = str(req_body).split("=")[1].replace("'", "")
