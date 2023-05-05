@@ -117,7 +117,7 @@ def pagos():
             if codigos:
                 for codigo in codigos:
                     sql = "update pagos set flow_token=%s where cod_pagos=%s"
-                    cursor.execute(sql, [create_payment.json()['token'], codigo])
+                    cursor.execute(sql, [create_payment.json()['token'], codigo['cod_pagos']])
             else:
                 sql = "update pagos set flow_token=%s where cod_pagos=%s"
                 cursor.execute(sql, [create_payment.json()['token'], cod_pagos['cod_pagos']])
