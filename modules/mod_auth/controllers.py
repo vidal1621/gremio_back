@@ -9,6 +9,8 @@ from ..app import db
 import basicauth
 import psycopg2.extras
 import datetime
+from modules.mod_pagos.controllers import Payment
+from modules.mod_pagos.controllers import PaymentCreate
 
 mod_auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -78,14 +80,9 @@ def authenticate(req):
 
 @mod_auth.route('/pagos', methods=['POST'])
 def pagos():
+    cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     try:
         current_app.logger.info('ingresando a pagos')
-        current_app.logger.info(db.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
-        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        current_app.logger.info(cursor)
-        from gremio_back.modules.mod_pagos.controllers import Payment
-        from gremio_back.modules.mod_pagos.controllers import PaymentCreate
-        current_app.logger.info(request.data)
         data = json.loads(request.data)
         current_app.logger.info(data)
         payment = Payment()
@@ -168,6 +165,7 @@ def pagos():
     except Exception as e:
         print(e)
         current_app.logger.info(e)
+        cursor.execute("rollback")
         return Response(response=json.dumps('error', default=str), status=500,
                         mimetype='application/json')
 
