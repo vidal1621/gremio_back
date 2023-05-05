@@ -91,7 +91,7 @@ def confimacion_pago():
         print(request.is_json)
         print(request.get_data())
         print(request.__dict__)
-        return {"mensaje": "ok"}
+        return {"mensaje": [request.is_json, request.get_data(), request.__dict__]}
 
     except Exception as e:
         print(e)
