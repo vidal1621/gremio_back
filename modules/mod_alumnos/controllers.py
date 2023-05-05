@@ -102,12 +102,11 @@ def confimacion_pago():
 @mod_alumnos.route('/retorno_pago', methods=['POST'])
 def retorno_pago():
     try:
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         req_body = request.body()
         token = str(req_body).split("=")[1].replace("'", "")
-        with open("./log.txt", "w") as file:
-            file.write(token)
-            file.close()
-        print(token)
+        sql_update_pago = "update pagos set desc_pagos='Pagado' where flow_token=%s"
+        cursor.execute(sql_update_pago, [token])
         return True
 
     except Exception as e:

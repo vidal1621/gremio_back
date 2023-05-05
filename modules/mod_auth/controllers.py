@@ -99,7 +99,7 @@ def pagos():
             monto_total += d['monto']
         data_order = {
             'amount': monto_total,
-            'commerceOrder': random.randint(1, 1000000000),
+            'commerceOrder': cod_pagos['cod_pagos'],
             'currency': 'CLP',
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
@@ -109,6 +109,8 @@ def pagos():
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
             url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
+            sql = "update pagos set flow_token=%s where cod_pagos=%s"
+            cursor.execute(sql, [create_payment.json()['token'], cod_pagos['cod_pagos']])
             cursor.execute("commit")
             return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
                 # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
