@@ -91,7 +91,7 @@ def confimacion_pago():
         print(request.is_json)
         print(request.get_data())
         print(request.__dict__)
-        return {"mensaje": [request.is_json, request.get_data(), request.__dict__]}
+        return Response(response=json.dumps({"mensaje": [request.is_json, request.get_data(), request.__dict__]}), status=500, mimetype='application/json')
 
     except Exception as e:
         print(e)
