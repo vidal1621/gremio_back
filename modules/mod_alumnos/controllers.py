@@ -105,10 +105,13 @@ def retorno_pago():
         cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         req_body = request.body()
         token = str(req_body).split("=")[1].replace("'", "")
-        sql_update_pago = "update pagos set desc_pagos='Pagado' where flow_token=%s"
+        cursor.execute("begin")
+        sql_update_pago = "update pagos set flow_token=%s"
         cursor.execute(sql_update_pago, [token])
+        cursor.execute("commit")
         return True
 
     except Exception as e:
         print(e)
+        cursor.execute("rollback")
         return Response(response=json.dumps(e), status=500, mimetype='application/json')
