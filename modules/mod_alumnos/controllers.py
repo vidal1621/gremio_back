@@ -87,13 +87,12 @@ def pagos_view_api():
 def confimacion_pago():
     try:
 
-        # req_body = json.loads(request.__dict__)
-        # req_body = request.body()
-        # token = str(req_body).split("=")[1].replace("'", "")
+        req_body = request.get_data()
+        token = str(req_body).split("=")[1].replace("'", "")
         # print(token)
-        logging.info(request.is_json, request.get_data(), request.__dict__)
-
-        return Response(response=json.dumps({"mensaje": [request.is_json, request.get_data(), request.__dict__]}), status=500, mimetype='application/json')
+        # logging.info(request.is_json, request.get_data(), request.__dict__)
+        logging.info(token)
+        return Response(response=json.dumps({"mensaje": token}), status=200, mimetype='application/json')
 
     except Exception as e:
         print(e)
