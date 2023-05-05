@@ -90,14 +90,13 @@ def confimacion_pago():
         req_body = request.get_data()
         token = str(req_body).split("=")[1].replace("'", "")
         cursor.execute("begin")
-        sql_update_pago = "update pagos set flow_token=%s, fecha_pago=%s"
-        cursor.execute(sql_update_pago, [token, datetime.datetime.now()])
+        sql_update_pago = "update pagos set desc_pagos='Pagado', fecha_pago=%s where flow_token=%s"
+        cursor.execute(sql_update_pago, [datetime.datetime.now(), token])
         cursor.execute("commit")
         # print(token)
         # logging.info(request.is_json, request.get_data(), request.__dict__)
         logging.info(token)
         return Response(response=json.dumps({"mensaje": token}), status=200, mimetype='application/json')
-
     except Exception as e:
         print(e)
         cursor.execute("rollback")
