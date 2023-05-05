@@ -80,7 +80,7 @@ def authenticate(req):
 def pagos():
     try:
         current_app.logger.info('ingresando a pagos')
-        current_app.logger.info(cursor_factory=psycopg2.extras.RealDictCursor)
+        current_app.logger.info(db.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
         cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         current_app.logger.info(cursor)
         from gremio_back.modules.mod_pagos.controllers import Payment
