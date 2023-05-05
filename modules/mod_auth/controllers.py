@@ -85,6 +85,7 @@ def pagos():
         payment = Payment()
         cursor.execute("begin")
         monto_total = 0
+        codigos = []
         for d in data['alumnos']:
             if d['cod_pagos'] != None:
                 cod_pagos = {}
@@ -94,12 +95,13 @@ def pagos():
                 pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
                 cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
                 cod_pagos = cursor.fetchone()
+                codigos.append(cod_pagos['cod_pagos'])
             # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
             # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
             monto_total += d['monto']
         data_order = {
             'amount': monto_total,
-            'commerceOrder': cod_pagos['cod_pagos'],
+            'commerceOrder': random.randint(1, 100000000),
             'currency': 'CLP',
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
@@ -109,8 +111,9 @@ def pagos():
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
             url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
-            sql = "update pagos set flow_token=%s where cod_pagos=%s"
-            cursor.execute(sql, [create_payment.json()['token'], cod_pagos['cod_pagos']])
+            for codigo in codigos:
+                sql = "update pagos set flow_token=%s where cod_pagos=%s"
+                cursor.execute(sql, [create_payment.json()['token'], codigo])
             cursor.execute("commit")
             return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
                 # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
