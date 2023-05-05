@@ -3,7 +3,7 @@
 import random
 import sys
 from functools import wraps
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, current_app
 import json
 from ..app import db
 import basicauth
@@ -79,6 +79,7 @@ def authenticate(req):
 @mod_auth.route('/pagos', methods=['POST'])
 def pagos():
     try:
+        current_app.logger.info('ingresando a pagos')
         cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         from gremio_back.modules.mod_pagos.controllers import Payment
         from gremio_back.modules.mod_pagos.controllers import PaymentCreate
@@ -89,6 +90,7 @@ def pagos():
         codigos = []
         cod_alumnos = {}
         multa = []
+        current_app.logger.info('entrando alumnos')
         for d in data['alumnos']:
             if d['cod_pagos'] != None:
                 cod_pagos = {}
@@ -138,10 +140,12 @@ def pagos():
             'currency': 'CLP',
             'email': datos_usuario['email'],
             'subject': 'Pago Mensualidad Escuela Gremio',
-            'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
+            'urlConfirmation': 'https://escuelagremiochile.cl/alumnos/confimacion_pago',
             'urlReturn': 'https://escuelagremiochile.cl/dashboard',
         }
+        current_app.logger.info(data_order)
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
+        current_app.logger.info(create_payment)
         if create_payment.status_code == 200:
             url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
             if codigos:
