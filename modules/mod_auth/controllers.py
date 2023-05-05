@@ -101,7 +101,7 @@ def pagos():
                 codigos.append(cod_pagos['cod_pagos'])
             # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
             # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
-            monto_total += d['monto']
+            monto_total += int(d['monto'])
         data_order = {
             'amount': monto_total,
             'commerceOrder': random.randint(1, 100000000),
