@@ -106,8 +106,8 @@ def retorno_pago():
         req_body = request.body()
         token = str(req_body).split("=")[1].replace("'", "")
         cursor.execute("begin")
-        sql_update_pago = "update pagos set flow_token=%s"
-        cursor.execute(sql_update_pago, [token])
+        sql_update_pago = "update pagos set flow_token=%s, fecha_pago=%s"
+        cursor.execute(sql_update_pago, [token, datetime.datetime.now()])
         cursor.execute("commit")
         return True
 

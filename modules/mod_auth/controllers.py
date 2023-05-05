@@ -26,7 +26,7 @@ def checkAuth():
     cursor.execute(exist_user, [email, password])
     user = cursor.fetchone()
     if user:
-        obj ={
+        obj = {
             'status': 'ok',
             'user': user
         }
@@ -42,8 +42,9 @@ def signup():
         data = json.loads(request.data)
         if data['password'] == data['confirmPass']:
             try:
-                cursor.execute("""insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
-                                 [data['email'], data['email'], data['password'], 2, int(data['celular'])])
+                cursor.execute(
+                    """insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
+                    [data['email'], data['email'], data['password'], 2, int(data['celular'])])
                 return Response(response=json.dumps('ok'), status=200, mimetype='application/json')
             except Exception as e:
                 print(e)
@@ -92,8 +93,9 @@ def pagos():
                 cod_pagos['cod_pagos'] = d['cod_pagos']
             else:
                 dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-                pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-                cursor.execute(pagos,[d['cod_usuario'], datetime.datetime.now(), dia_vencimiento, d['monto'],'Pendiente', d['cod_alumno']])
+                pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno,fecha_emision) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
+                cursor.execute(pagos, [d['cod_usuario'], dia_vencimiento, d['monto'], 'Pendiente', d['cod_alumno'],
+                                       datetime.datetime.now()])
                 cod_pagos = cursor.fetchone()
                 codigos.append(cod_pagos['cod_pagos'])
             # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
@@ -120,8 +122,8 @@ def pagos():
                 cursor.execute(sql, [create_payment.json()['token'], cod_pagos['cod_pagos']])
             cursor.execute("commit")
             return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
-                # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
-                # cursor.execute(sql_update, [create_payment.json()['token'], 'Pagado', cod_pagos['cod_pagos']])
+            # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
+            # cursor.execute(sql_update, [create_payment.json()['token'], 'Pagado', cod_pagos['cod_pagos']])
         return Response(response=json.dumps('ok', default=str), status=200,
                         mimetype='application/json')
     except Exception as e:
@@ -161,8 +163,8 @@ def send_mail(email, nombre, password):
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['To'] = toaddr
-    msg['Subject'] ="Recuperacion de password gremio webapp"
-    body = "Hola "+nombre+" tu password es: "+password
+    msg['Subject'] = "Recuperacion de password gremio webapp"
+    body = "Hola " + nombre + " tu password es: " + password
     msg.attach(MIMEText(body, 'plain'))
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
@@ -188,7 +190,8 @@ def crear_pagos_cron():
                 cursor.execute(sql_plan_asociado, [a['cod_alumno']])
                 monto = cursor.fetchone()
                 pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-                cursor.execute(pagos,[a['cod_usuario'], datetime.datetime.now(), dia_vencimiento, monto, 'Pendiente', a['cod_alumno']])
+                cursor.execute(pagos, [a['cod_usuario'], datetime.datetime.now(), dia_vencimiento, monto, 'Pendiente',
+                                       a['cod_alumno']])
             cursor.execute("commit")
             return Response(response=json.dumps('ok', default=str), status=200,
                             mimetype='application/json')
