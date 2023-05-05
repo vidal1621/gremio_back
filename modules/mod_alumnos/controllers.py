@@ -86,8 +86,8 @@ def confimacion_pago():
     try:
         req_body = request.data
         # req_body = request.body()
-        token = str(req_body).split("=")[1].replace("'", "")
-        print(token)
+        # token = str(req_body).split("=")[1].replace("'", "")
+        # print(token)
         print(req_body)
         return True
 
