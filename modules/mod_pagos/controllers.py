@@ -98,7 +98,9 @@ class Payment:
         self.API_URL = 'https://sandbox.flow.cl/api'
         self.API_KEY = '7F77DD8F-DDDA-4496-BB12-6D9F9BL8729C'
         self.API_SECRET = '726ae63459d59cf567d026f78c40c2d716c67283'
-
+        # self.API_URL = 'https://www.flow.cl/api'
+        # self.API_KEY = '397F2D60-7BB4-4C5B-9443-661890LC541B'
+        # self.API_SECRET = '9a79b4cf4d88e56d59eff8d6e7c52728b5aed218'
     def create_signature(self, params: Dict):
         sorted_data = ''.join([f'{k}{v}' for k, v in sorted(params.items()) if k != 's'])
         hash_string = hmac.new(self.API_SECRET.encode(), sorted_data.encode(), hashlib.sha256).hexdigest()

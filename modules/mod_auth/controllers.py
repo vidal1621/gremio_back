@@ -102,11 +102,19 @@ def pagos():
             # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
             # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
             monto_total += int(d['monto'])
+
+        sql_datos_usuario = "select * from usuarios where cod_usuario=%s"
+        cursor.execute(sql_datos_usuario, [data['alumnos'][0]['cod_usuario']])
+        datos_usuario = cursor.fetchone()
+        if datetime.datetime.now().day > 10:
+            multa = 4000
+        else:
+            multa = 0
         data_order = {
-            'amount': monto_total,
+            'amount': monto_total + multa,
             'commerceOrder': random.randint(1, 100000000),
             'currency': 'CLP',
-            'email': 'Escuelagremiochile@gmail.com',
+            'email': datos_usuario['email'],
             'subject': 'Pago Mensualidad Escuela Gremio',
             'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
             'urlReturn': 'https://escuelagremiochile.cl/dashboard',
