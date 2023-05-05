@@ -83,7 +83,9 @@ def pagos():
         cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         from gremio_back.modules.mod_pagos.controllers import Payment
         from gremio_back.modules.mod_pagos.controllers import PaymentCreate
+        current_app.logger.info(request.data)
         data = json.loads(request.data)
+        current_app.logger.info(data)
         payment = Payment()
         cursor.execute("begin")
         monto_total = 0
