@@ -99,12 +99,12 @@ def pagos():
             monto_total += d['monto']
         data_order = {
             'amount': monto_total,
-            'commerceOrder': cod_pagos['cod_pagos'],
+            'commerceOrder': random.randint(1, 1000000000),
             'currency': 'CLP',
             'email': 'Escuelagremiochile@gmail.com',
             'subject': 'Pago Mensualidad Escuela Gremio',
-            'urlConfirmation': 'https://186.64.122.205/alumnos/confimacion_pago',
-            'urlReturn': 'https://186.64.122.205/alumno/retorno_pago',
+            'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
+            'urlReturn': 'https://escuelagremiochile.cl/dashboard',
         }
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
