@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import logging
+
 from flask import Blueprint, Response, request
 import json
 from ..app import db
@@ -84,13 +86,13 @@ def pagos_view_api():
 @mod_alumnos.route('/confimacion_pago', methods=['POST'])
 def confimacion_pago():
     try:
+
         # req_body = json.loads(request.__dict__)
         # req_body = request.body()
         # token = str(req_body).split("=")[1].replace("'", "")
         # print(token)
-        print(request.is_json)
-        print(request.get_data())
-        print(request.__dict__)
+        logging.info(request.is_json, request.get_data(), request.__dict__)
+
         return Response(response=json.dumps({"mensaje": [request.is_json, request.get_data(), request.__dict__]}), status=500, mimetype='application/json')
 
     except Exception as e:
