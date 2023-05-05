@@ -56,7 +56,7 @@ def maestro_totales_api():
         sql_total_pagos = "select coalesce (sum(monto),0) monto from pagos where desc_pagos='Pagado' and extract(month from fecha_pago)=%s and extract(year from fecha_pago)=extract(year from now())"
         cursor.execute(sql_total_pagos, [data['mes']])
         total_pagos = cursor.fetchall()
-        sql_total_deuda = "select coalesce (sum(monto),0) monto from pagos where desc_pagos='Pendiente' and extract(month from fecha_pago)=%s and extract(year from fecha_pago)=extract(year from now())"
+        sql_total_deuda = "select coalesce (sum(monto),0) monto from pagos where desc_pagos='Pendiente' and extract(month from fecha_emision)=%s and extract(year from fecha_emision)=extract(year from now())"
         cursor.execute(sql_total_deuda, [data['mes']])
         total_deuda = cursor.fetchall()
         sql_total_alumnos = "select count(*) total_alumnos from alumnos"
