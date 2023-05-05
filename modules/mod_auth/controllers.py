@@ -91,6 +91,7 @@ def pagos():
             if d['cod_pagos'] != None:
                 cod_pagos = {}
                 cod_pagos['cod_pagos'] = d['cod_pagos']
+                codigos.append(cod_pagos)
             else:
                 dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
                 pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno,fecha_emision) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
