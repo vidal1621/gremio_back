@@ -10,19 +10,6 @@ import psycopg2.extras
 
 mod_alumnos = Blueprint('alumnos', __name__, url_prefix='/alumnos')
 
-logging.basicConfig(filename="std.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
-
-# Let us Create an object
-logger = logging.getLogger()
-
-# Now we are going to Set the threshold of logger to DEBUG
-logger.setLevel(logging.DEBUG)
-
-# some messages to test
-logger.debug("This is just a harmless debug message")
-
 
 @mod_alumnos.route('/alumnos_api', methods=['GET', 'POST', 'PUT'])
 def alumnos_api():
@@ -117,6 +104,9 @@ def retorno_pago():
     try:
         req_body = request.body()
         token = str(req_body).split("=")[1].replace("'", "")
+        with open("./log.txt", "w") as file:
+            file.write(token)
+            file.close()
         print(token)
         return True
 
