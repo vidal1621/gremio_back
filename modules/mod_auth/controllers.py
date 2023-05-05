@@ -167,7 +167,7 @@ def pagos():
                         mimetype='application/json')
     except Exception as e:
         print(e)
-        cursor.execute("rollback")
+        current_app.logger.info(e)
         return Response(response=json.dumps('error', default=str), status=500,
                         mimetype='application/json')
 
