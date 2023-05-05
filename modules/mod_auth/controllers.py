@@ -87,11 +87,26 @@ def pagos():
         cursor.execute("begin")
         monto_total = 0
         codigos = []
+        cod_alumnos = {}
+        multa = []
         for d in data['alumnos']:
             if d['cod_pagos'] != None:
                 cod_pagos = {}
                 cod_pagos['cod_pagos'] = d['cod_pagos']
                 codigos.append(cod_pagos)
+                sql_alumno = "select * from alumnos where cod_alumno=%s"
+                cursor.execute(sql_alumno, [d['cod_alumno']])
+                alumno = cursor.fetchone()
+                cod_alumnos['cod_alumno'] = alumno['cod_alumno']
+                cod_alumnos['inserttime'] = alumno['inserttime']
+                # si el mes de fecha de creacion es igual a la fecha actual entonces no hay multa
+                if cod_alumnos['inserttime'].month == datetime.datetime.now().month:
+                    multa.append(0)
+                else:
+                    if datetime.datetime.now().day > 10:
+                        multa.append(4000)
+                    else:
+                        multa.append(0)
             else:
                 dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
                 pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno,fecha_emision) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
@@ -99,19 +114,26 @@ def pagos():
                                        datetime.datetime.now()])
                 cod_pagos = cursor.fetchone()
                 codigos.append(cod_pagos['cod_pagos'])
-            # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
+                sql_alumno = "select * from alumnos where cod_alumno=%s"
+                cursor.execute(sql_alumno, [d['cod_alumno']])
+                alumno = cursor.fetchone()
+                cod_alumnos['cod_alumno'] = alumno['cod_alumno']
+                cod_alumnos['inserttime'] = alumno['inserttime']
+                if cod_alumnos['inserttime'].month == datetime.datetime.now().month:
+                    multa.append(0)
+                else:
+                    if datetime.datetime.now().day > 10:
+                        multa.append(4000)
+                    else:
+                        multa.append(0)
+                # detalle_pagos = "insert into detalle_pagos (cod_pagos, monto, cod_usuario) values (%s,%s,%s)"
             # cursor.execute(detalle_pagos, [cod_pagos['cod_pagos'], d['monto'], d['cod_usuario']])
             monto_total += int(d['monto'])
-
         sql_datos_usuario = "select * from usuarios where cod_usuario=%s"
         cursor.execute(sql_datos_usuario, [data['alumnos'][0]['cod_usuario']])
         datos_usuario = cursor.fetchone()
-        if datetime.datetime.now().day > 10:
-            multa = 4000
-        else:
-            multa = 0
         data_order = {
-            'amount': monto_total + multa,
+            'amount': monto_total + sum(multa),
             'commerceOrder': random.randint(1, 100000000),
             'currency': 'CLP',
             'email': datos_usuario['email'],
