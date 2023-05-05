@@ -111,9 +111,13 @@ def pagos():
         create_payment = payment.create_order(payment_data=PaymentCreate(**data_order))
         if create_payment.status_code == 200:
             url_pay = create_payment.json()['url'] + '?token=' + create_payment.json()['token']
-            for codigo in codigos:
+            if codigos:
+                for codigo in codigos:
+                    sql = "update pagos set flow_token=%s where cod_pagos=%s"
+                    cursor.execute(sql, [create_payment.json()['token'], codigo])
+            else:
                 sql = "update pagos set flow_token=%s where cod_pagos=%s"
-                cursor.execute(sql, [create_payment.json()['token'], codigo])
+                cursor.execute(sql, [create_payment.json()['token'], cod_pagos['cod_pagos']])
             cursor.execute("commit")
             return Response(response=json.dumps(url_pay, default=str), status=200, mimetype='application/json')
                 # sql_update = "update pagos set flow_token=%s, desc_pagos where cod_pagos=%s"
