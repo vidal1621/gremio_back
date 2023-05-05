@@ -84,11 +84,13 @@ def pagos_view_api():
 @mod_alumnos.route('/confimacion_pago', methods=['POST'])
 def confimacion_pago():
     try:
-        req_body = json.loads(request.data)
+        # req_body = json.loads(request.__dict__)
         # req_body = request.body()
         # token = str(req_body).split("=")[1].replace("'", "")
         # print(token)
-        print(req_body)
+        print(request.is_json)
+        print(request.get_data())
+        print(request.__dict__)
         return True
 
     except Exception as e:
