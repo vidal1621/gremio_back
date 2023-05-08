@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, current_app
 import json
 from ..app import db
 import datetime
@@ -90,6 +90,7 @@ def confimacion_pago():
         req_body = request.get_data()
         token = str(req_body).split("=")[1].replace("'", "")
         cursor.execute("begin")
+        current_app.logger.info(token)
         sql_update_pago = "update pagos set desc_pagos='Pagado', fecha_pago=%s where flow_token=%s"
         cursor.execute(sql_update_pago, [datetime.datetime.now(), token])
         cursor.execute("commit")
