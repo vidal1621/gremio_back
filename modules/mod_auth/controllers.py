@@ -141,7 +141,7 @@ def pagos():
             'currency': 'CLP',
             'email': datos_usuario['email'],
             'subject': 'Pago Mensualidad Escuela Gremio',
-            'urlConfirmation': 'https://escuelagremiochile.cl/alumnos/confimacion_pago',
+            'urlConfirmation': 'http://186.64.122.205:5000/alumnos/confimacion_pago',
             'urlReturn': 'https://escuelagremiochile.cl/dashboard',
         }
         current_app.logger.info(data_order)
