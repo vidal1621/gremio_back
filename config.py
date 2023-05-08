@@ -31,8 +31,8 @@ CSRF_SESSION_KEY = "asdwerwe"
 SECRET_KEY = "123sdwr"
 
 
-api_key_flow = "7F77DD8F-DDDA-4496-BB12-6D9F9BL8729C"
-secret_key_flow = "726ae63459d59cf567d026f78c40c2d716c67283"
-# api_key_flow = "397F2D60-7BB4-4C5B-9443-661890LC541B"
-# secret_key_flow = "9a79b4cf4d88e56d59eff8d6e7c52728b5aed218"
+# api_key_flow = "7F77DD8F-DDDA-4496-BB12-6D9F9BL8729C"
+# secret_key_flow = "726ae63459d59cf567d026f78c40c2d716c67283"
+api_key_flow = "397F2D60-7BB4-4C5B-9443-661890LC541B"
+secret_key_flow = "9a79b4cf4d88e56d59eff8d6e7c52728b5aed218"
 
