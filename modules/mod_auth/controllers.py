@@ -44,10 +44,16 @@ def signup():
         data = json.loads(request.data)
         if data['password'] == data['confirmPass']:
             try:
-                cursor.execute(
-                    """insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
-                    [data['email'], data['email'], data['password'], 2, int(data['celular'])])
-                return Response(response=json.dumps('ok'), status=200, mimetype='application/json')
+                sql_usuario_exist = """select * from usuarios where email = %s"""
+                cursor.execute(sql_usuario_exist, [data['email']])
+                usuario_exist = cursor.fetchone()
+                if usuario_exist:
+                    return Response(response=json.dumps('usuario ya existe'), status=500, mimetype='application/json')
+                else:
+                    cursor.execute(
+                        """insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
+                        [data['email'], data['email'], data['password'], 2, int(data['celular'])])
+                    return Response(response=json.dumps('ok'), status=200, mimetype='application/json')
             except Exception as e:
                 print(e)
                 return Response(response=json.dumps(e), status=500, mimetype='application/json')

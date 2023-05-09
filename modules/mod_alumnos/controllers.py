@@ -33,19 +33,25 @@ def alumnos_api():
         try:
             cursor.execute("begin")
             for d in data['alumnos']:
-                cursor.execute(
-                    "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso) values (%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
-                    [d['cod_usuario'], d['nombre_alumno'], d['rut_alumno'],
-                     d['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso']])
-                cod_alumno = cursor.fetchone()
-                sql_planes_pago = "select precio from planes_pagos where cod_planes_pagos=%s"
-                cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
-                precio = cursor.fetchone()
-                pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-                cursor.execute(pagos,
-                               [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
-                                precio['precio'],
-                                'Pendiente', cod_alumno['cod_alumno']])
+                sql_alumno_existente = "select * from alumnos where rut_alumno=%s"
+                cursor.execute(sql_alumno_existente, [d['rut_alumno']])
+                alumno_existente = cursor.fetchone()
+                if alumno_existente:
+                    print(alumno_existente)
+                else:
+                    cursor.execute(
+                        "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso) values (%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
+                        [d['cod_usuario'], d['nombre_alumno'], d['rut_alumno'],
+                         d['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso']])
+                    cod_alumno = cursor.fetchone()
+                    sql_planes_pago = "select precio from planes_pagos where cod_planes_pagos=%s"
+                    cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
+                    precio = cursor.fetchone()
+                    pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
+                    cursor.execute(pagos,
+                                   [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
+                                    precio['precio'],
+                                    'Pendiente', cod_alumno['cod_alumno']])
             cursor.execute("commit")
             return Response(response=json.dumps('ok', default=str), status=200, mimetype='application/json')
         except Exception as e:
