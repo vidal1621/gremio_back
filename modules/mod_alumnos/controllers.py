@@ -39,10 +39,13 @@ def alumnos_api():
                 if alumno_existente:
                     print(alumno_existente)
                 else:
+                    sql_cod_categoria = "select cod_categoria from planes_pagos where cod_planes_pagos=%s"
+                    cursor.execute(sql_cod_categoria, [d['cod_planes_pagos']])
+                    cod_categoria = cursor.fetchone()
                     cursor.execute(
-                        "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso) values (%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
+                        "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso,cod_categoria) values (%s,%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
                         [d['cod_usuario'], d['nombre_alumno'], d['rut_alumno'],
-                         d['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso']])
+                         d['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso'], cod_categoria['cod_categoria']])
                     cod_alumno = cursor.fetchone()
                     sql_planes_pago = "select precio from planes_pagos where cod_planes_pagos=%s"
                     cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
