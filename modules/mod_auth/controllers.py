@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import random
+import string
 import sys
 from functools import wraps
 from flask import Blueprint, Response, request, current_app
@@ -141,9 +142,10 @@ def pagos():
         sql_datos_usuario = "select * from usuarios where cod_usuario=%s"
         cursor.execute(sql_datos_usuario, [data['alumnos'][0]['cod_usuario']])
         datos_usuario = cursor.fetchone()
+        hash_pago = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
         data_order = {
             'amount': monto_total + sum(multa),
-            'commerceOrder': random.randint(1, 100000000),
+            'commerceOrder': hash_pago,
             'currency': 'CLP',
             'email': datos_usuario['email'],
             'subject': 'Pago Mensualidad Escuela Gremio',
