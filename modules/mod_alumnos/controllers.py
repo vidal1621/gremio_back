@@ -92,24 +92,21 @@ def pagos_view_api():
                         mimetype='application/json')
 
 
-@mod_alumnos.route('/confimacion_pago', methods=['POST'])
+@mod_alumnos.route('/confimacion_pago', methods=['POST', 'GET'])
 def confimacion_pago():
+    cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     try:
-        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         req_body = request.get_data()
+        current_app.logger.info(req_body)
         token = str(req_body).split("=")[1].replace("'", "")
-        cursor.execute("begin")
         current_app.logger.info(token)
         sql_update_pago = "update pagos set desc_pagos='Pagado', fecha_pago=%s where flow_token=%s"
         cursor.execute(sql_update_pago, [datetime.datetime.now(), token])
-        cursor.execute("commit")
-        # print(token)
-        # logging.info(request.is_json, request.get_data(), request.__dict__)
-        logging.info(token)
+        current_app.logger.info('commit')
         return Response(response=json.dumps({"mensaje": token}), status=200, mimetype='application/json')
     except Exception as e:
         print(e)
-        cursor.execute("rollback")
+        current_app.logger.info(e)
         return Response(response=json.dumps(e), status=500, mimetype='application/json')
 
 
