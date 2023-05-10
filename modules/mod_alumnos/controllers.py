@@ -103,11 +103,40 @@ def confimacion_pago():
         sql_update_pago = "update pagos set desc_pagos='Pagado', fecha_pago=%s where flow_token=%s"
         cursor.execute(sql_update_pago, [datetime.datetime.now(), token])
         current_app.logger.info('commit')
+        destinatario = 'christian.mendozac@outlook.com'
+        asunto = 'verificacion en el pago'
+        contenido = 'pago verificado token: ' + token
+        enviar_correo(destinatario, asunto, contenido)
         return Response(response=json.dumps({"mensaje": token}), status=200, mimetype='application/json')
     except Exception as e:
         print(e)
         current_app.logger.info(e)
+        destinatario = 'christian.mendozac@outlook.com'
+        asunto = 'error en el pago'
+        contenido = 'revisa el error en el pago'
+        enviar_correo(destinatario, asunto, contenido)
         return Response(response=json.dumps(e), status=500, mimetype='application/json')
+
+
+def enviar_correo(destinatario, asunto, contenido):
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    fromaddr = "xvidaaalx@gmail.com"
+    toaddr = destinatario
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] = asunto
+    body = contenido
+    msg.attach(MIMEText(body, 'plain'))
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(fromaddr, "aymcwztzbleymltv")
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
+    server.quit()
+    return True
 
 
 @mod_alumnos.route('/retorno_pago', methods=['POST'])
