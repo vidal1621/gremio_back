@@ -102,10 +102,16 @@ def confimacion_pago():
         current_app.logger.info(token)
         sql_update_pago = "update pagos set desc_pagos='Pagado', fecha_pago=%s where flow_token=%s"
         cursor.execute(sql_update_pago, [datetime.datetime.now(), token])
-        current_app.logger.info('commit')
+        sql_usuario = """select email,fecha_pago  from pagos p 
+                               join usuarios u using (cod_usuario) 
+                               where flow_token=%s"""
+        cursor.execute(sql_usuario, [token])
+        usuario = cursor.fetchone()
+        current_app.logger.info(usuario)
         destinatario = 'christian.mendozac@outlook.com'
         asunto = 'verificacion en el pago'
-        contenido = 'pago verificado token: ' + token
+        contenido = 'pago verificado token: ' + token + ' usuario:' + usuario['email']
+
         enviar_correo(destinatario, asunto, contenido)
         return Response(response=json.dumps({"mensaje": token}), status=200, mimetype='application/json')
     except Exception as e:
