@@ -17,7 +17,7 @@ def alumnos_api():
     data = json.loads(request.data)
     if request.method == 'GET':
         sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision,cod_pagos
-                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=%s and extract(year from fecha_emision)=extract(year from now())"""
+                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=extract(month from now()) and extract(year from fecha_emision)=extract(year from now())"""
         cursor.execute(sql_pendiente, [data['cod_usuario'], data['mes']])
         alumnos = cursor.fetchall()
         planes_pago = "select * from planes_pagos"

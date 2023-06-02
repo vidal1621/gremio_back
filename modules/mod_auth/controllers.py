@@ -225,21 +225,21 @@ def crear_pagos_cron():
     try:
         fecha_actual = datetime.datetime.now()
         cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        if fecha_actual.day == 10:
-            cursor.execute("select * from alumnos")
-            alumnos = cursor.fetchall()
-            cursor.execute("begin")
-            for a in alumnos:
-                dia_vencimiento = datetime.datetime.now().replace(day=10) + datetime.timedelta(days=30)
-                sql_plan_asociado = "select monto from alumnos where cod_alumno=%s"
-                cursor.execute(sql_plan_asociado, [a['cod_alumno']])
-                monto = cursor.fetchone()
-                pagos = "insert into pagos (cod_usuario,fecha_pago,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
-                cursor.execute(pagos, [a['cod_usuario'], datetime.datetime.now(), dia_vencimiento, monto, 'Pendiente',
-                                       a['cod_alumno']])
-            cursor.execute("commit")
-            return Response(response=json.dumps('ok', default=str), status=200,
-                            mimetype='application/json')
+        cursor.execute("select * from alumnos")
+        alumnos = cursor.fetchall()
+        cursor.execute("begin")
+        for a in alumnos:
+            dia_vencimiento = datetime.datetime.now().replace(day=10)
+            sql_plan_asociado = "select monto from pagos where cod_alumno=%s"
+            cursor.execute(sql_plan_asociado, [a['cod_alumno']])
+            monto = cursor.fetchone()
+            pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s) returning cod_pagos"
+            cursor.execute(pagos, [a['cod_usuario'], dia_vencimiento, monto['monto'], 'Pendiente',
+                                   a['cod_alumno']])
+            print('se inserto pago alumno: ', a['cod_alumno'])
+        cursor.execute("commit")
+        return Response(response=json.dumps('ok', default=str), status=200,
+                        mimetype='application/json')
     except Exception as e:
         print(e)
         cursor.execute("rollback")
