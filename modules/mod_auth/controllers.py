@@ -233,9 +233,9 @@ def crear_pagos_cron():
             sql_plan_asociado = "select monto from pagos where cod_alumno=%s"
             cursor.execute(sql_plan_asociado, [a['cod_alumno']])
             monto = cursor.fetchone()
-            pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno) values (%s,%s,%s,%s,%s) returning cod_pagos"
+            pagos = "insert into pagos (cod_usuario,fecha_vencimiento, monto, desc_pagos,cod_alumno,fecha_emision) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
             cursor.execute(pagos, [a['cod_usuario'], dia_vencimiento, monto['monto'], 'Pendiente',
-                                   a['cod_alumno']])
+                                   a['cod_alumno'], fecha_actual])
             print('se inserto pago alumno: ', a['cod_alumno'])
         cursor.execute("commit")
         return Response(response=json.dumps('ok', default=str), status=200,
