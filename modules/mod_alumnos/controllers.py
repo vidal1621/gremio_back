@@ -16,16 +16,21 @@ def alumnos_api():
     cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     data = json.loads(request.data)
     if request.method == 'GET':
-        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision,cod_pagos
-                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=extract(month from now()) and extract(year from fecha_emision)=extract(year from now())"""
+        sql_pendiente = """select distinct(a.cod_alumno), a.cod_usuario,nombre_alumno,cod_planes_pagos,rut_alumno,fecha_nacimiento,fecha_pago,fecha_vencimiento,monto,altura,peso,desc_pagos,fecha_emision,cod_pagos,verificado
+                        from alumnos a join pagos p using (cod_alumno) where a.cod_usuario=%s and extract(month from fecha_emision)=extract(month from now()) and extract(year from fecha_emision)=extract(year from now())
+                        """
         cursor.execute(sql_pendiente, [data['cod_usuario']])
         alumnos = cursor.fetchall()
-        planes_pago = "select * from planes_pagos"
+        planes_pago = "select * from categorias"
         cursor.execute(planes_pago)
         planes = cursor.fetchall()
+        convenios_ = "select * from convenios"
+        cursor.execute(convenios_)
+        convenios = cursor.fetchall()
         object = {
             'alumnos': alumnos,
-            'planes': planes
+            'planes': planes,
+            'convenios': convenios
         }
         return Response(response=json.dumps(object, default=str), status=200,
                         mimetype='application/json')
@@ -40,21 +45,33 @@ def alumnos_api():
                     print(alumno_existente)
                 else:
                     sql_cod_categoria = "select cod_categoria from planes_pagos where cod_planes_pagos=%s"
-                    cursor.execute(sql_cod_categoria, [d['cod_planes_pagos']])
+                    cursor.execute(sql_cod_categoria, [d['cod_categorias']])
                     cod_categoria = cursor.fetchone()
+                    estado = 'Pendiente'
+                    if d['cod_convenios'] in (5, '5'):  # SIN CONVENIO
+                        sql_planes_pago = "select max(precio)precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
+                        cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
+                        precio = cursor.fetchone()
+                    elif d['cod_convenios'] in (3, '3'):  # BECADO
+                        sql_planes_pago = "select precio, cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=0"
+                        cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
+                        precio = cursor.fetchone()
+                        estado = 'Pagado'
+                    elif d['cod_convenios'] in (1, '1', 2, '2'):  # SAN MARTIN O SANTO TOMAS
+                        sql_planes_pago = "select min(precio), cod_planes_pagos from planes_pagos where cod_categoria=%s"
+                        cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
+                        precio = cursor.fetchone()
                     cursor.execute(
-                        "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso,cod_categoria) values (%s,%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
+                        "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso,cod_categoria,cod_convenios,verificado) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
                         [d['cod_usuario'], d['nombre_alumno'], d['rut_alumno'],
-                         d['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso'], cod_categoria['cod_categoria']])
+                         precio['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso'],
+                         cod_categoria['cod_categoria'], d['cod_convenios'], 'false'])
                     cod_alumno = cursor.fetchone()
-                    sql_planes_pago = "select precio from planes_pagos where cod_planes_pagos=%s"
-                    cursor.execute(sql_planes_pago, [d['cod_planes_pagos']])
-                    precio = cursor.fetchone()
                     pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
                     cursor.execute(pagos,
                                    [data['alumnos'][0]['cod_usuario'], datetime.datetime.now(), datetime.datetime.now(),
                                     precio['precio'],
-                                    'Pendiente', cod_alumno['cod_alumno']])
+                                    estado, cod_alumno['cod_alumno']])
             cursor.execute("commit")
             return Response(response=json.dumps('ok', default=str), status=200, mimetype='application/json')
         except Exception as e:

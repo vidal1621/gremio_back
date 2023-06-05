@@ -5,7 +5,7 @@ import json
 from ..app import db
 import psycopg2.extras
 
-mod_maestro= Blueprint('maestro', __name__, url_prefix='/maestro')
+mod_maestro = Blueprint('maestro', __name__, url_prefix='/maestro')
 
 
 @mod_maestro.route('/maestro_pagos_alumnos_api', methods=['GET', 'POST'])
@@ -26,7 +26,7 @@ def maestro_pagos_alumnos():
                         mimetype='application/json')
 
 
-@mod_maestro.route('/maestro_pagos_api', methods=['GET','POST'])
+@mod_maestro.route('/maestro_pagos_api', methods=['GET', 'POST'])
 def maestro_pagos():
     cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     data = json.loads(request.data)
@@ -41,9 +41,13 @@ def maestro_pagos():
         sql_categoria = "select * from categorias"
         cursor.execute(sql_categoria)
         categorias = cursor.fetchall()
+        sql_convenios = "select * from convenios"
+        cursor.execute(sql_convenios)
+        convenios = cursor.fetchall()
         maestro_pagos = {
             'alumnos_gremio': alumnos,
-            'categorias': categorias
+            'categorias': categorias,
+            'convenios': convenios
         }
         return Response(response=json.dumps(maestro_pagos, default=str), status=200,
                         mimetype='application/json')
@@ -75,3 +79,39 @@ def maestro_totales_api():
             'total_alumnos': total_alumnos
         }
         return Response(response=json.dumps(object, default=str), status=200, mimetype='application/json')
+
+
+@mod_maestro.route('/maestro_verificaciones_alumnos', methods=['POST'])
+def maestro_verificaciones_alumnos():
+    try:
+        cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        data = json.loads(request.data)
+        cursor.execute("begin")
+        if data['verificado'] == 'true':
+            estado= True
+        else:
+            estado = False
+        if data['cod_convenios'] in (3, '3'):  # becado
+            sql_cod_planes_pago = "select precio, cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=0"
+            cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
+            cod_planes_pago = cursor.fetchone()
+        elif data['cod_convenios'] in (5, '5'):  # sin convenios
+            sql_cod_planes_pago = "select max(precio) precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
+            cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
+            cod_planes_pago = cursor.fetchone()
+        elif data['cod_convenios'] in (1, '1', '2', 2):  # san martin o santo tomas
+            sql_cod_planes_pago = "select min(precio) precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
+            cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
+            cod_planes_pago = cursor.fetchone()
+        sql_categoria_alumno = "update alumnos set cod_categoria=%s, verificado=%s, cod_convenios=%s, cod_planes_pagos=%s where cod_alumno=%s"
+        cursor.execute(sql_categoria_alumno,
+                       [data['cod_categoria'], estado, data['cod_convenios'],
+                        cod_planes_pago['cod_planes_pagos'], data['cod_alumno']])
+        sql_update_pagos = "update pagos set desc_pagos=%s, monto=%s  where cod_alumno=%s"
+        cursor.execute(sql_update_pagos, [data['desc_pagos'], cod_planes_pago['precio'], data['cod_alumno']])
+        cursor.execute("commit")
+        return Response(response=json.dumps({'status': 'ok'}), status=200, mimetype='application/json')
+    except Exception as e:
+        print(e)
+        cursor.execute("rollback")
+        return Response(response=json.dumps({'status': 'error'}, default=str), status=500, mimetype='application/json')
