@@ -31,12 +31,14 @@ def maestro_pagos():
     cursor = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     data = json.loads(request.data)
     if request.method == 'GET':
-        sql_alumnos = """SELECT a.*, MAX(p.fecha_pago) AS ultima_fecha_pago, desc_pagos, nombre_categoria
+        sql_alumnos = """SELECT (fecha_pago) ultima_fecha_pago, desc_pagos, nombre_categoria, nombre_alumno, rut_alumno, fecha_nacimiento, peso, altura,verificado, 
+                        cod_convenios, cod_categoria, cod_alumno, cod_planes_pagos
                         FROM alumnos a
                         JOIN categorias c USING (cod_categoria)
                         JOIN pagos p USING (cod_alumno)
-                        GROUP BY a.cod_alumno, desc_pagos, nombre_categoria;"""
-        cursor.execute(sql_alumnos)
+                        where extract(month from fecha_vencimiento)=%s and extract(year from fecha_vencimiento)=%s
+                        """
+        cursor.execute(sql_alumnos, [data['mes'], data['anio']])
         alumnos = cursor.fetchall()
         sql_categoria = "select * from categorias"
         cursor.execute(sql_categoria)
