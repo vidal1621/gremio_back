@@ -49,7 +49,8 @@ def alumnos_api():
                     cod_categoria = cursor.fetchone()
                     estado = 'Pendiente'
                     if d['cod_convenios'] in (5, '5'):  # SIN CONVENIO
-                        sql_planes_pago = "select max(precio)precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
+                        sql_planes_pago = """select max(precio)precio, cod_planes_pagos from planes_pagos where cod_categoria=%s
+                        group by cod_planes_pagos"""
                         cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
                         precio = cursor.fetchone()
                     elif d['cod_convenios'] in (3, '3'):  # BECADO
@@ -58,7 +59,8 @@ def alumnos_api():
                         precio = cursor.fetchone()
                         estado = 'Pagado'
                     elif d['cod_convenios'] in (1, '1', 2, '2'):  # SAN MARTIN O SANTO TOMAS
-                        sql_planes_pago = "select min(precio), cod_planes_pagos from planes_pagos where cod_categoria=%s"
+                        sql_planes_pago = """select min(precio), cod_planes_pagos from planes_pagos where cod_categoria=%s
+                        group by cod_planes_pagos"""
                         cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
                         precio = cursor.fetchone()
                     cursor.execute(

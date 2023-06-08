@@ -23,7 +23,7 @@ def checkAuth():
     if authorization is not None and "Basic " in authorization:
         username, passwd = basicauth.decode(authorization)
         print(username, passwd)
-    email = username
+    email = username.lower()
     password = passwd
     exist_user = """select * from usuarios where email = %s and password = %s"""
     cursor.execute(exist_user, [email, password])
@@ -79,7 +79,6 @@ def login_required(func):
 
 def authenticate(req):
     authorization = req
-    cursor = db.cursor()
     if authorization is not None and "Basic " in authorization:
         username, passwd = basicauth.decode(authorization)
         return username, passwd
