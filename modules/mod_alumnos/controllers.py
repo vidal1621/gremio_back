@@ -49,24 +49,31 @@ def alumnos_api():
                     cod_categoria = cursor.fetchone()
                     estado = 'Pendiente'
                     if d['cod_convenios'] in (5, '5'):  # SIN CONVENIO
-                        sql_planes_pago = """select max(precio)precio, cod_planes_pagos from planes_pagos where cod_categoria=%s
-                        group by cod_planes_pagos"""
+                        sql_planes_pago = """select max(precio)precio from planes_pagos where cod_categoria=%s and precio!=0"""
                         cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
                         precio = cursor.fetchone()
+                        sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+                        cursor.execute(sql_cod_planes_pagos, [cod_categoria['cod_categoria'], precio['precio']])
+                        cod_planes_pagos = cursor.fetchone()
                     elif d['cod_convenios'] in (3, '3'):  # BECADO
-                        sql_planes_pago = "select precio, cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=0"
+                        sql_planes_pago = "select precio from planes_pagos where cod_categoria=%s and precio=0"
                         cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
                         precio = cursor.fetchone()
+                        sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+                        cursor.execute(sql_cod_planes_pagos, [cod_categoria['cod_categoria'], precio['precio']])
+                        cod_planes_pagos = cursor.fetchone()
                         estado = 'Pagado'
                     elif d['cod_convenios'] in (1, '1', 2, '2'):  # SAN MARTIN O SANTO TOMAS
-                        sql_planes_pago = """select min(precio), cod_planes_pagos from planes_pagos where cod_categoria=%s
-                        group by cod_planes_pagos"""
+                        sql_planes_pago = """select min(precio) precio from planes_pagos where cod_categoria=%s and precio!=0"""
                         cursor.execute(sql_planes_pago, [cod_categoria['cod_categoria']])
                         precio = cursor.fetchone()
+                        sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+                        cursor.execute(sql_cod_planes_pagos, [cod_categoria['cod_categoria'], precio['precio']])
+                        cod_planes_pagos = cursor.fetchone()
                     cursor.execute(
                         "insert into alumnos (cod_usuario,nombre_alumno,rut_alumno,cod_planes_pagos, fecha_nacimiento,altura,peso,cod_categoria,cod_convenios,verificado) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) returning cod_alumno",
                         [d['cod_usuario'], d['nombre_alumno'], d['rut_alumno'],
-                         precio['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso'],
+                         cod_planes_pagos['cod_planes_pagos'], d['fecha_nacimiento'], d['altura'], d['peso'],
                          cod_categoria['cod_categoria'], d['cod_convenios'], 'false'])
                     cod_alumno = cursor.fetchone()
                     pagos = "insert into pagos (cod_usuario,fecha_emision,fecha_vencimiento, monto, desc_pagos, cod_alumno) values (%s,%s,%s,%s,%s,%s) returning cod_pagos"
