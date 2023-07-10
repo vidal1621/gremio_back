@@ -232,6 +232,10 @@ def crear_pagos_cron():
             sql_plan_asociado = "select monto from pagos where cod_alumno=%s"
             cursor.execute(sql_plan_asociado, [a['cod_alumno']])
             monto = cursor.fetchone()
+            if monto is None:
+                sql_monto = """select (precio)monto from planes_pagos where cod_planes_pagos=%s"""
+                cursor.execute(sql_monto, [a['cod_planes_pagos']])
+                monto = cursor.fetchone()
             sql_pagos = "select * from pagos where cod_alumno=%s and extract(year from fecha_vencimiento)=%s and extract(month from fecha_vencimiento)=%s"
             cursor.execute(sql_pagos, [a['cod_alumno'], fecha_actual.year, fecha_actual.month])
             exist_pago = cursor.fetchone()

@@ -94,23 +94,32 @@ def maestro_verificaciones_alumnos():
         else:
             estado = False
         if data['cod_convenios'] in (3, '3'):  # becado
-            sql_cod_planes_pago = "select precio, cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=0"
+            sql_cod_planes_pago = "select precio from planes_pagos where cod_categoria=%s and precio=0"
             cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
-            cod_planes_pago = cursor.fetchone()
+            precio = cursor.fetchone()
+            sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+            cursor.execute(sql_cod_planes_pagos, [data['cod_categoria'], precio['precio']])
+            cod_planes_pagos = cursor.fetchone()
         elif data['cod_convenios'] in (5, '5'):  # sin convenios
-            sql_cod_planes_pago = "select max(precio) precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
-            cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
-            cod_planes_pago = cursor.fetchone()
+            sql_planes_pago = """select max(precio)precio from planes_pagos where cod_categoria=%s and precio!=0"""
+            cursor.execute(sql_planes_pago, [data['cod_categoria']])
+            precio = cursor.fetchone()
+            sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+            cursor.execute(sql_cod_planes_pagos, [data['cod_categoria'], precio['precio']])
+            cod_planes_pagos = cursor.fetchone()
         elif data['cod_convenios'] in (1, '1', '2', 2):  # san martin o santo tomas
-            sql_cod_planes_pago = "select min(precio) precio, cod_planes_pagos from planes_pagos where cod_categoria=%s"
+            sql_cod_planes_pago = "select min(precio) precio from planes_pagos where cod_categoria=%s"
             cursor.execute(sql_cod_planes_pago, [data['cod_categoria']])
-            cod_planes_pago = cursor.fetchone()
+            precio = cursor.fetchone()
+            sql_cod_planes_pagos = """select cod_planes_pagos from planes_pagos where cod_categoria=%s and precio=%s"""
+            cursor.execute(sql_cod_planes_pagos, [data['cod_categoria'], precio['precio']])
+            cod_planes_pagos = cursor.fetchone()
         sql_categoria_alumno = "update alumnos set cod_categoria=%s, verificado=%s, cod_convenios=%s, cod_planes_pagos=%s where cod_alumno=%s"
         cursor.execute(sql_categoria_alumno,
                        [data['cod_categoria'], estado, data['cod_convenios'],
-                        cod_planes_pago['cod_planes_pagos'], data['cod_alumno']])
+                        cod_planes_pagos['cod_planes_pagos'], data['cod_alumno']])
         sql_update_pagos = "update pagos set desc_pagos=%s, monto=%s  where cod_alumno=%s"
-        cursor.execute(sql_update_pagos, [data['desc_pagos'], cod_planes_pago['precio'], data['cod_alumno']])
+        cursor.execute(sql_update_pagos, [data['desc_pagos'], precio['precio'], data['cod_alumno']])
         cursor.execute("commit")
         return Response(response=json.dumps({'status': 'ok'}), status=200, mimetype='application/json')
     except Exception as e:
