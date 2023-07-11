@@ -52,9 +52,9 @@ def signup():
                 if usuario_exist:
                     return Response(response=json.dumps('usuario ya existe'), status=500, mimetype='application/json')
                 else:
-                    # cursor.execute(
-                    #     """insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
-                    #     [data['email'], data['email'], data['password'], 2, int(data['celular'])])
+                    cursor.execute(
+                        """insert into usuarios (nombre_usuario,email,password,cod_tipo_usuario,celular) values (%s,%s,%s,%s,%s)""",
+                        [data['email'], data['email'], data['password'], 2, int(data['celular'])])
                     #encvciar correo de registro de usuario
                     registro_alumno_correo(data['email'], data['password'])
                     return Response(response=json.dumps('ok'), status=200, mimetype='application/json')
